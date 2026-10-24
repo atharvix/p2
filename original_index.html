@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atharvix Technologies</title>
+<meta name="description" content="Atharvix Technologies is a software studio that designs and engineers products with patience, precision and a long-game mindset.">
+<link rel="icon" href="assets/logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+
+<style>
+/* ===================== Tokens ===================== */
+:root {
+  --lacquer: #071510;
+  --felt: #0E2620;
+  --felt-2: #13312A;
+  --ivory: #ECE4CF;
+  --ivory-dim: #B5AE9B;
+  --ivory-faint: rgba(236, 228, 207, 0.14);
+  --brass: #C29A4B;
+  --brass-deep: #8C6B2C;
+  --brass-faint: rgba(194, 154, 75, 0.28);
+  --oxblood: #7A1E2B;
+  --ink: #17130E;
+
+  --display: 'Bodoni Moda', 'Didot', 'Bodoni 72', serif;
+  --sans: 'Hanken Grotesk', system-ui, sans-serif;
+
+  /* type scale, ratio 1.333 */
+  --t-sm: 0.875rem;
+  --t-base: 1.0625rem;
+  --t-md: 1.4rem;
+  --t-lg: 1.875rem;
+  --t-xl: clamp(2.2rem, 4.6vw, 3.6rem);
+  --t-xxl: clamp(2.8rem, 7vw, 5.6rem);
+
+  --gutter: clamp(16px, 4vw, 56px);
+  --max: 1240px;
+
+  /* gallery image visibility: 0.2 = faded to 20% so text reads on top */
+  --gallery-img-opacity: 0.2;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+body {
+  margin: 0;
+  background: var(--lacquer);
+  color: var(--ivory);
+  font-family: var(--sans);
+  font-size: var(--t-base);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+body.is-loading { overflow: hidden; }
+::selection { background: var(--brass); color: var(--lacquer); }
+
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 500; margin: 0; line-height: 1.08; letter-spacing: -0.01em; }
+p { margin: 0; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+
+.wrap { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+.section { position: relative; z-index: 2; padding: clamp(96px, 14vw, 180px) 0; }
+
+.sec-head { display: grid; gap: 20px; max-width: 760px; margin-bottom: clamp(48px, 7vw, 88px); }
+.sec-title { font-size: var(--t-xxl); font-weight: 450; }
+.sec-lede { color: var(--ivory-dim); max-width: 58ch; font-size: 1.125rem; }
+
+/* line reveal helper */
+.split .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.split .wi { display: inline-block; will-change: transform; }
+
+/* ===================== Background canvas & grain ===================== */
+#engraving { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.grain {
+  position: fixed; inset: -50%; width: 200%; height: 200%; z-index: 60; pointer-events: none; opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(3, 10, 7, 0.75) 100%); }
+
+/* ===================== Loader ===================== */
+.loader { position: fixed; inset: 0; z-index: 100; pointer-events: all; }
+.loader-half { position: absolute; left: 0; width: 100%; height: 50.5%; background: var(--felt);
+  transition: transform 0.9s cubic-bezier(0.76, 0, 0.24, 1); }
+.loader-half.top { top: 0; border-bottom: 1px solid var(--brass-faint); }
+.loader-half.bottom { bottom: 0; }
+.loader-core { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 28px;
+  transition: opacity 0.4s ease; }
+.loader-chip { width: 132px; height: 132px; position: relative; transform-style: preserve-3d; }
+.loader-chip svg { width: 100%; height: 100%; overflow: visible; }
+.loader-chip .draw { stroke-dasharray: 420; stroke-dashoffset: 420; animation: draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+.loader-chip .draw.d2 { animation-delay: 0.15s; }
+.loader-chip .draw.d3 { animation-delay: 0.3s; }
+.loader-chip .mono-fill { opacity: 0; animation: monoIn 0.6s 0.7s ease forwards; }
+.loader-chip .logo-img { position: absolute; inset: 22%; width: 56%; height: 56%; object-fit: contain; opacity: 0; animation: monoIn 0.6s 0.7s ease forwards; }
+.loader-chip.flip { animation: coin 0.6s cubic-bezier(0.45, 0, 0.2, 1); }
+.loader-name { font-family: var(--display); font-size: 1.35rem; letter-spacing: 0.32em; padding-left: 0.32em; color: var(--ivory);
+  opacity: 0; animation: nameIn 0.9s 0.55s ease forwards; }
+.loader-sub { font-size: var(--t-sm); color: var(--ivory-dim); letter-spacing: 0.08em; opacity: 0; animation: nameIn 0.9s 0.8s ease forwards; }
+.loader.done .loader-half.top { transform: translateY(-100%); }
+.loader.done .loader-half.bottom { transform: translateY(100%); }
+.loader.done .loader-core { opacity: 0; }
+.loader.gone { display: none; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes monoIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+@keyframes nameIn { from { opacity: 0; letter-spacing: 0.6em; } to { opacity: 1; } }
+@keyframes coin { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
+
+/* logo: shows the uploaded file when present, monogram otherwise */
+.has-logo .mono-fallback { display: none; }
+body:not(.has-logo) .logo-img { display: none; }
+
+/* ===================== Cursor ===================== */
+.cursor { position: fixed; top: 0; left: 0; z-index: 90; pointer-events: none; display: none; }
+.cursor-on .cursor { display: block; }
+.cursor-on, .cursor-on a, .cursor-on button, .cursor-on input, .cursor-on textarea, .cursor-on [role="button"] { cursor: none; }
+.cursor-dot { position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--brass); }
+.cursor-chip { position: absolute; width: 38px; height: 38px; margin: -19px 0 0 -19px;
+  transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.cursor-chip svg { width: 100%; height: 100%; animation: spin 8s linear infinite; overflow: visible; }
+.cursor-suit { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; color: var(--brass); opacity: 0; transition: opacity 0.25s; }
+.cursor.hover .cursor-chip { width: 64px; height: 64px; margin: -32px 0 0 -32px; }
+.cursor.hover .cursor-chip svg { animation-duration: 2.4s; }
+.cursor.hover .cursor-suit { opacity: 1; }
+.cursor.hover .cursor-dot { opacity: 0; }
+.cursor.press .cursor-chip { width: 30px; height: 30px; margin: -15px 0 0 -15px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===================== Scroll chip rail ===================== */
+.rail { position: fixed; right: 26px; top: 18vh; height: 64vh; width: 22px; z-index: 30; pointer-events: none; }
+.rail::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--ivory-faint); }
+.rail-fill { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: var(--brass); transform-origin: top; transform: scaleY(0); }
+.rail-chip { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin-top: -11px; }
+.rail-chip svg { width: 100%; height: 100%; }
+@media (max-width: 900px) { .rail { display: none; } }
+
+/* ===================== Nav ===================== */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; transition: background 0.4s, border-color 0.4s, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-bottom: 1px solid transparent; }
+.nav.solid { background: rgba(7, 21, 16, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-color: var(--ivory-faint); }
+.nav.hide { transform: translateY(-100%); }
+.nav-in { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 76px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand-mark { width: 38px; height: 38px; position: relative; flex: none; }
+.brand-mark svg, .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
+.brand-name { font-family: var(--display); font-size: 1.15rem; letter-spacing: 0.04em; line-height: 1; }
+.brand-name small { display: block; font-family: var(--sans); font-size: 0.7rem; letter-spacing: 0.22em; color: var(--ivory-dim); margin-top: 4px; }
+.nav-links { display: flex; gap: 30px; list-style: none; margin: 0; padding: 0; }
+.nav-links a { text-decoration: none; font-size: 0.95rem; color: var(--ivory-dim); position: relative; padding: 6px 0; transition: color 0.3s; }
+.nav-links a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--brass);
+  transform: scaleX(0); transform-origin: right; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.nav-links a:hover, .nav-links a.active { color: var(--ivory); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); transform-origin: left; }
+.nav-menu { display: none; background: none; border: 1px solid var(--brass-faint); padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; }
+
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 999px; text-decoration: none; font-weight: 500;
+  font-size: 0.98rem; border: 1px solid var(--brass); position: relative; overflow: hidden; isolation: isolate; background: none; cursor: pointer;
+  transition: color 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.btn::before { content: ""; position: absolute; inset: 0; background: var(--brass); z-index: -1; transform: translateY(101%);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: inherit; }
+.btn:hover { color: var(--lacquer); }
+.btn:hover::before { transform: translateY(0); }
+.btn-solid { background: var(--brass); color: var(--lacquer); }
+.btn-solid::before { background: var(--ivory); }
+.btn-sm { padding: 10px 20px; font-size: 0.9rem; }
+
+@media (max-width: 1020px) {
+  .nav-links { position: fixed; inset: 76px 0 auto 0; flex-direction: column; gap: 0; background: rgba(7, 21, 16, 0.97);
+    padding: 12px var(--gutter) 28px; border-bottom: 1px solid var(--ivory-faint); display: none; }
+  .nav-links.open { display: flex; }
+  .nav-links a { display: block; padding: 14px 0; font-size: 1.1rem; }
+  .nav-menu { display: inline-block; }
+  .nav .btn-sm { display: none; }
+}
+
+/* ===================== Hero ===================== */
+.hero { position: relative; z-index: 2; min-height: 100svh; display: flex; align-items: center; padding: 120px 0 80px; }
+.hero-frame { position: absolute; inset: 92px var(--gutter) 28px; border: 1px solid var(--brass-faint); pointer-events: none; }
+.hero-frame::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(194, 154, 75, 0.14); }
+.hero-frame i { position: absolute; width: 14px; height: 14px; border: 1px solid var(--brass); transform: rotate(45deg); background: var(--lacquer); }
+.hero-frame i:nth-child(1) { top: -7px; left: -7px; } .hero-frame i:nth-child(2) { top: -7px; right: -7px; }
+.hero-frame i:nth-child(3) { bottom: -7px; left: -7px; } .hero-frame i:nth-child(4) { bottom: -7px; right: -7px; }
+.hero-in { position: relative; width: 100%; }
+.hero-title { font-size: clamp(4rem, 13.5vw, 11.5rem); font-weight: 500; line-height: 0.86; letter-spacing: -0.035em; margin-left: -0.04em; }
+.hero-title .l { display: inline-block; will-change: transform; }
+.hero-sub { display: block; font-family: var(--sans); font-size: clamp(0.85rem, 1.6vw, 1.15rem); letter-spacing: 0.62em; font-weight: 500; color: var(--brass);
+  margin: 22px 0 0 0.3em; }
+.hero-copy { max-width: 46ch; margin-top: clamp(32px, 5vw, 56px); font-size: 1.15rem; color: var(--ivory-dim); }
+.hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 36px; }
+.hero-hand { position: absolute; right: 0; bottom: -10px; display: flex; }
+.hero-hand .mini { width: 62px; height: 88px; border-radius: 6px; background: var(--ivory); color: var(--ink); font-family: var(--display); font-size: 1.15rem;
+  padding: 6px 8px; margin-left: -26px; box-shadow: -4px 6px 18px rgba(0, 0, 0, 0.45); transform-origin: 50% 120%; line-height: 1; }
+.hero-hand .mini.red { color: var(--oxblood); }
+.hero-hand .mini span { display: block; font-size: 1.4rem; margin-top: 2px; }
+@media (max-width: 760px) { .hero-hand { display: none; } .hero-frame { inset: 84px 10px 14px; } }
+
+/* ===================== Founder ===================== */
+.founder-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(40px, 7vw, 110px); align-items: center; }
+.portrait-wrap { perspective: 1400px; }
+.portrait { position: relative; aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; background: var(--felt);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8); transform-style: preserve-3d; }
+.portrait::after { content: ""; position: absolute; inset: 12px; border: 1px solid rgba(236, 228, 207, 0.35); border-radius: 8px; pointer-events: none; }
+.portrait-tag { position: absolute; left: 24px; bottom: 22px; z-index: 2; font-family: var(--display); font-size: 1.4rem; line-height: 1.1; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6); }
+.portrait-tag small { display: block; font-family: var(--sans); font-size: 0.85rem; color: var(--ivory-dim); margin-top: 4px; }
+.founder-text .sec-title { margin-bottom: 28px; }
+.founder-text p + p { margin-top: 18px; }
+.founder-text p { color: var(--ivory-dim); max-width: 60ch; }
+.founder-text .lead { color: var(--ivory); font-family: var(--display); font-size: var(--t-md); line-height: 1.4; }
+.signature { margin-top: 34px; font-family: var(--display); font-style: italic; font-size: 2rem; color: var(--brass); }
+@media (max-width: 860px) { .founder-grid { grid-template-columns: 1fr; } .portrait-wrap { max-width: 420px; } }
+
+/* image slot placeholder (shown until a real file is added) */
+.slot { position: relative; overflow: hidden; background-color: var(--felt);
+  background-image: repeating-radial-gradient(circle at 70% 40%, transparent 0 9px, rgba(194, 154, 75, 0.12) 9px 10px); }
+.slot img { width: 100%; height: 100%; object-fit: cover; }
+.slot.empty::before { content: "Add image: " attr(data-src); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font-size: 0.82rem; color: var(--ivory-dim); background: rgba(7, 21, 16, 0.85); padding: 8px 14px; border-radius: 999px; white-space: nowrap; }
+
+/* ===================== Services: dealt cards ===================== */
+.deck { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2vw, 28px); perspective: 1600px; }
+.pcard { position: relative; aspect-ratio: 5 / 7.4; border-radius: 16px; background: var(--ivory); color: var(--ink); padding: 22px 22px 24px;
+  display: flex; flex-direction: column; box-shadow: 0 30px 60px -28px rgba(0, 0, 0, 0.85); transform-style: preserve-3d;
+  transition: translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), rotate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.pcard::before { content: ""; position: absolute; inset: 9px; border: 1px solid rgba(23, 19, 14, 0.18); border-radius: 10px; pointer-events: none; }
+.pcard:hover { translate: 0 -14px; rotate: -1.5deg; }
+.pcard.red { color: var(--oxblood); }
+.pcard-idx { font-family: var(--display); font-size: 2.2rem; line-height: 0.9; }
+.pcard-idx span { display: block; font-size: 1.5rem; }
+.pcard-suit { position: absolute; right: 22px; top: 22px; font-size: 1.6rem; opacity: 0.85; }
+.pcard-body { margin-top: auto; color: var(--ink); }
+.pcard h3 { font-size: 1.5rem; margin-bottom: 10px; }
+.pcard p { font-size: 0.95rem; color: #4A4234; line-height: 1.5; }
+.pcard-big { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); font-size: clamp(4rem, 7vw, 6rem); opacity: 0.09; line-height: 1; }
+@media (max-width: 1000px) { .deck { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .deck { grid-template-columns: 1fr; } .pcard { aspect-ratio: auto; min-height: 330px; } }
+
+/* ===================== Projects ===================== */
+.projects { display: grid; gap: clamp(80px, 12vw, 160px); }
+.proj { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
+.proj:nth-child(even) { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.proj:nth-child(even) .proj-media { order: 2; }
+.proj-media { aspect-ratio: 16 / 11; border-radius: 12px; }
+.proj-media img { transform: scale(1.15); will-change: transform; }
+.proj-num { font-family: var(--display); font-size: 1.1rem; color: var(--brass); }
+.proj h3 { font-size: var(--t-xl); margin: 14px 0 18px; }
+.proj p { color: var(--ivory-dim); max-width: 50ch; }
+.proj-meta { color: var(--ivory); font-size: 0.95rem; margin-bottom: 6px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; list-style: none; padding: 0; }
+.tags li { font-size: 0.82rem; padding: 6px 13px; border: 1px solid var(--brass-faint); border-radius: 999px; color: var(--ivory-dim); }
+.proj-links { display: flex; gap: 22px; margin-top: 30px; }
+.link-u { text-decoration: none; position: relative; padding-bottom: 4px; font-weight: 500; }
+.link-u::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--brass); transform-origin: left; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.link-u:hover::after { transform: scaleX(0.3); }
+@media (max-width: 860px) {
+  .proj, .proj:nth-child(even) { grid-template-columns: 1fr; }
+  .proj:nth-child(even) .proj-media { order: 0; }
+}
+
+/* ===================== Stack: chips ===================== */
+.chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(24px, 4vw, 56px); }
+.chip-item { text-align: center; }
+.chip { width: min(210px, 100%); aspect-ratio: 1; margin: 0 auto 26px; position: relative; perspective: 900px; }
+.chip-face { position: absolute; inset: 0; border-radius: 50%; display: grid; place-items: center; transition: rotate 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.chip:hover .chip-face { rotate: 180deg; }
+.chip svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.chip-label { position: relative; font-family: var(--display); font-size: clamp(1.4rem, 2.4vw, 2rem); line-height: 1; }
+.chip-label small { display: block; font-family: var(--sans); font-size: 0.72rem; color: var(--ivory-dim); letter-spacing: 0.08em; margin-top: 6px; }
+.chip-item h3 { font-size: 1.35rem; margin-bottom: 10px; }
+.chip-item p { color: var(--ivory-dim); font-size: 0.95rem; }
+@media (max-width: 900px) { .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ===================== Track record ===================== */
+.timeline { position: relative; display: grid; gap: clamp(56px, 8vw, 96px); padding-left: clamp(40px, 8vw, 120px); }
+.tl-line { position: absolute; left: clamp(12px, 3vw, 40px); top: 8px; bottom: 8px; width: 1px; background: var(--ivory-faint); }
+.tl-line i { position: absolute; inset: 0; background: var(--brass); transform-origin: top; transform: scaleY(0); }
+.tl-item { position: relative; display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); gap: clamp(20px, 4vw, 60px); }
+.tl-node { position: absolute; left: calc(-1 * clamp(40px, 8vw, 120px) + clamp(12px, 3vw, 40px) - 9px); top: 6px; width: 19px; height: 19px; }
+.tl-node svg { width: 100%; height: 100%; }
+.tl-when { font-family: var(--display); font-size: 1.15rem; color: var(--brass); }
+.tl-where { color: var(--ivory-dim); font-size: 0.95rem; margin-top: 6px; }
+.tl-item h3 { font-size: var(--t-lg); margin-bottom: 14px; }
+.tl-item p { color: var(--ivory-dim); max-width: 62ch; }
+@media (max-width: 760px) { .tl-item { grid-template-columns: 1fr; gap: 10px; } }
+
+/* ===================== Gallery ===================== */
+.gallery-sec { position: relative; z-index: 2; padding: clamp(96px, 14vw, 180px) 0 clamp(60px, 8vw, 100px); }
+.gallery-head { display: flex; justify-content: space-between; align-items: end; gap: 32px; flex-wrap: wrap; margin-bottom: 48px; }
+.gallery-head .sec-head { margin-bottom: 0; }
+.g-controls { display: flex; gap: 10px; }
+.g-btn { width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--brass-faint); background: none; display: grid; place-items: center;
+  cursor: pointer; transition: border-color 0.3s, background 0.3s; }
+.g-btn:hover { border-color: var(--brass); background: rgba(194, 154, 75, 0.1); }
+.g-btn svg { width: 20px; height: 20px; }
+.g-viewport { width: 100%; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.g-track { display: flex; width: max-content; will-change: transform; }
+.g-item { position: relative; flex: none; width: clamp(300px, 36vw, 580px); height: clamp(400px, 66vh, 640px); overflow: hidden;
+  background-color: var(--felt); background-image: repeating-radial-gradient(circle at 30% 70%, transparent 0 11px, rgba(194, 154, 75, 0.08) 11px 12px); }
+.g-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: var(--gallery-img-opacity);
+  transition: opacity 0.7s ease, transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
+.g-item img.missing { display: none; }
+.g-item:hover img { opacity: calc(var(--gallery-img-opacity) + 0.12); transform: scale(1.04); }
+.g-text { position: absolute; inset: auto 0 0 0; padding: clamp(24px, 3vw, 40px); }
+.g-meta { color: var(--brass); font-size: 0.9rem; margin-bottom: 12px; }
+.g-text h3 { font-size: clamp(1.7rem, 2.6vw, 2.4rem); margin-bottom: 12px; }
+.g-text p { color: var(--ivory-dim); max-width: 40ch; font-size: 0.98rem; }
+.g-idx { position: absolute; top: clamp(24px, 3vw, 40px); left: clamp(24px, 3vw, 40px); font-family: var(--display); font-size: 4.5rem; line-height: 1; color: rgba(236, 228, 207, 0.08); }
+.g-hint-src { position: absolute; top: clamp(24px, 3vw, 40px); right: clamp(24px, 3vw, 40px); font-size: 0.75rem; color: var(--ivory-dim); opacity: 0.6; }
+.g-item.has-img .g-hint-src { display: none; }
+
+/* ===================== Contact + table ===================== */
+.contact-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 72px); align-items: start; }
+@media (max-width: 980px) { .contact-grid { grid-template-columns: 1fr; } }
+.form { display: grid; gap: 30px; margin-top: 40px; }
+.field { position: relative; }
+.field label { display: block; font-size: 0.92rem; color: var(--ivory-dim); margin-bottom: 8px; }
+.field input, .field textarea { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--ivory-faint); color: var(--ivory);
+  font: inherit; font-size: 1.1rem; padding: 10px 0 12px; border-radius: 0; resize: vertical; }
+.field textarea { min-height: 120px; }
+.field input:focus, .field textarea:focus { outline: none; }
+.field .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--brass); transform: scaleX(0); transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.field textarea ~ .bar { bottom: 6px; }
+.field input:focus ~ .bar, .field textarea:focus ~ .bar { transform: scaleX(1); }
+.form-foot { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.form-status { font-size: 0.95rem; color: var(--ivory-dim); min-height: 1.5em; }
+.form-status.ok { color: var(--brass); }
+.form-status.err { color: #E07A80; }
+.hp { position: absolute; left: -9999px; }
+.direct { margin-top: 44px; display: grid; gap: 6px; color: var(--ivory-dim); font-size: 0.95rem; }
+.direct a { color: var(--ivory); }
+
+/* blackjack table */
+.table { position: relative; border-radius: 28px; padding: clamp(22px, 3vw, 36px); overflow: hidden;
+  background: radial-gradient(ellipse 90% 70% at 50% 35%, #1B4237 0%, var(--felt) 55%, #0A1D18 100%);
+  box-shadow: inset 0 0 0 1px var(--brass-faint), inset 0 0 0 10px #0A1914, inset 0 0 0 11px rgba(194, 154, 75, 0.35), 0 50px 90px -40px rgba(0, 0, 0, 0.9); }
+.table::before { content: ""; position: absolute; left: 50%; top: 50%; width: 120%; aspect-ratio: 1; transform: translate(-50%, -48%); border-radius: 50%;
+  border: 1px solid rgba(194, 154, 75, 0.12); pointer-events: none; }
+.t-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; position: relative; }
+.t-top h3 { font-size: 1.6rem; }
+.t-bank { font-size: 0.95rem; color: var(--ivory-dim); }
+.t-bank strong { color: var(--ivory); font-family: var(--display); font-size: 1.25rem; font-weight: 500; }
+.t-row { position: relative; margin-top: 26px; }
+.t-label { font-size: 0.88rem; color: var(--ivory-dim); display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.t-score { min-width: 30px; height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--brass-faint); display: inline-grid; place-items: center; color: var(--ivory); font-size: 0.82rem; }
+.hand { display: flex; min-height: 112px; perspective: 900px; }
+.card { flex: none; width: 76px; height: 108px; border-radius: 8px; margin-right: -26px; position: relative; transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); animation: dealIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.card.down { transform: rotateY(180deg); }
+.card .front, .card .back { position: absolute; inset: 0; border-radius: inherit; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  box-shadow: -3px 6px 14px rgba(0, 0, 0, 0.45); }
+.card .front { background: var(--ivory); color: var(--ink); padding: 7px 8px; font-family: var(--display); line-height: 1; }
+.card.red .front { color: var(--oxblood); }
+.card .front b { font-weight: 500; font-size: 1.15rem; display: block; }
+.card .front i { font-style: normal; font-size: 0.95rem; }
+.card .front em { position: absolute; left: 50%; top: 54%; transform: translate(-50%, -50%); font-style: normal; font-size: 2rem; }
+.card .back { transform: rotateY(180deg); background-color: var(--oxblood);
+  background-image: repeating-conic-gradient(from 0deg at 50% 50%, rgba(194, 154, 75, 0.35) 0 3deg, transparent 3deg 12deg),
+                    repeating-radial-gradient(circle at 50% 50%, transparent 0 5px, rgba(236, 228, 207, 0.08) 5px 6px);
+  border: 4px solid var(--ivory); }
+@keyframes dealIn { from { opacity: 0; transform: translate(140px, -120px) rotate(18deg); } to { opacity: 1; } }
+.card.down { animation-name: dealInDown; }
+@keyframes dealInDown { from { opacity: 0; transform: translate(140px, -120px) rotate(18deg) rotateY(180deg); } to { opacity: 1; transform: rotateY(180deg); } }
+.t-msg { position: relative; margin-top: 24px; min-height: 3.2em; font-family: var(--display); font-size: 1.2rem; line-height: 1.35; }
+.t-bet { position: relative; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.t-chip { width: 54px; height: 54px; border-radius: 50%; border: 0; cursor: pointer; position: relative; font-weight: 600; font-size: 0.88rem;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.t-chip:hover:not(:disabled) { transform: translateY(-4px) rotate(20deg); }
+.t-chip:disabled { opacity: 0.35; cursor: not-allowed; }
+.t-chip svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.t-chip span { position: relative; }
+.t-chip.c10 { background: var(--ivory); color: var(--ink); }
+.t-chip.c25 { background: var(--oxblood); color: var(--ivory); }
+.t-chip.c100 { background: #1E1A14; color: var(--brass); }
+.t-betval { margin-left: auto; font-size: 0.92rem; color: var(--ivory-dim); }
+.t-betval strong { color: var(--ivory); font-family: var(--display); font-size: 1.3rem; font-weight: 500; }
+.t-actions { position: relative; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.t-actions .btn { padding: 11px 20px; font-size: 0.92rem; }
+.t-actions .btn:disabled { opacity: 0.3; pointer-events: none; }
+.t-rule { position: relative; margin-top: 20px; font-size: 0.82rem; color: var(--ivory-dim); }
+@media (max-width: 480px) { .card { width: 62px; height: 90px; margin-right: -22px; } .card .front em { font-size: 1.6rem; } }
+
+/* ===================== Footer ===================== */
+.footer { position: relative; z-index: 2; border-top: 1px solid var(--ivory-faint); padding: 72px 0 40px; background: rgba(7, 21, 16, 0.6); }
+.footer-big { font-family: var(--display); font-size: clamp(3rem, 12vw, 10rem); line-height: 0.9; letter-spacing: -0.03em; color: rgba(236, 228, 207, 0.08); white-space: nowrap; overflow: hidden; }
+.footer-row { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; margin-top: 40px; color: var(--ivory-dim); font-size: 0.92rem; }
+.footer-row ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 24px; flex-wrap: wrap; }
+.footer-row a { text-decoration: none; }
+.footer-row a:hover { color: var(--ivory); }
+
+/* ===================== Reduced motion ===================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+
+<body class="is-loading">
+
+<!-- Shared SVG symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="chip-edge" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="6" stroke-dasharray="12.3 12.3" />
+      <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.7" />
+      <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" stroke-width="0.6" stroke-dasharray="2 3" opacity="0.6" />
+    </symbol>
+    <symbol id="monogram" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="48" fill="#0E2620" stroke="#C29A4B" stroke-width="1.2" />
+      <circle cx="50" cy="50" r="48" fill="none" stroke="#C29A4B" stroke-width="5" stroke-dasharray="7.5 7.5" opacity="0.85" />
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#C29A4B" stroke-width="0.8" />
+      <text x="50" y="66" text-anchor="middle" font-family="Bodoni Moda, Didot, serif" font-size="46" font-weight="500" fill="#ECE4CF">A</text>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- Loader -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-half top"></div>
+  <div class="loader-half bottom"></div>
+  <div class="loader-core">
+    <div class="loader-chip" id="loaderChip">
+      <svg viewBox="0 0 120 120" class="mono-fallback">
+        <circle class="draw" cx="60" cy="60" r="56" fill="none" stroke="#C29A4B" stroke-width="1.2" />
+        <circle class="draw d2" cx="60" cy="60" r="46" fill="none" stroke="#C29A4B" stroke-width="0.8" />
+        <circle class="draw d3" cx="60" cy="60" r="56" fill="none" stroke="#C29A4B" stroke-width="7" stroke-dasharray="9 9" opacity="0.9" />
+        <g class="mono-fill">
+          <text x="60" y="77" text-anchor="middle" font-family="Bodoni Moda, Didot, serif" font-size="54" font-weight="500" fill="#ECE4CF">A</text>
+        </g>
+      </svg>
+      <img class="logo-img" src="assets/logo.png" alt="">
+    </div>
+    <div class="loader-name">ATHARVIX</div>
+    <div class="loader-sub">Technologies</div>
+  </div>
+</div>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor" aria-hidden="true">
+  <div class="cursor-chip"><svg viewBox="0 0 100 100" style="color:#C29A4B"><use href="#chip-edge" /></svg><div class="cursor-suit" id="cursorSuit">&spades;</div></div>
+  <div class="cursor-dot"></div>
+</div>
+
+<canvas id="engraving" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- Scroll rail -->
+<div class="rail" aria-hidden="true">
+  <div class="rail-fill" id="railFill"></div>
+  <div class="rail-chip" id="railChip"><svg viewBox="0 0 100 100" style="color:#C29A4B"><circle cx="50" cy="50" r="46" fill="#0E2620" /><use href="#chip-edge" /></svg></div>
+</div>
+
+<!-- Nav -->
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand" aria-label="Atharvix Technologies, back to top">
+      <span class="brand-mark">
+        <svg class="mono-fallback" viewBox="0 0 100 100"><use href="#monogram" /></svg>
+        <img class="logo-img" src="assets/logo.png" alt="">
+      </span>
+      <span class="brand-name">Atharvix<small>TECHNOLOGIES</small></span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#founder">Founder</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#record">Record</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#contact" class="btn btn-sm">Start a project</a>
+    <button class="nav-menu" id="navMenu" aria-expanded="false" aria-controls="navLinks">Menu</button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="wrap hero-in">
+      <h1 class="hero-title" aria-label="Atharvix Technologies">
+        <span class="hero-word" aria-hidden="true">Atharvix</span>
+        <span class="hero-sub" aria-hidden="true">TECHNOLOGIES</span>
+      </h1>
+      <p class="hero-copy">A software studio that plays the long game. We design and engineer products the way a good player reads a table: study the situation, size the risk, and commit only when the odds are on our side.</p>
+      <div class="hero-ctas">
+        <a href="#work" class="btn btn-solid" data-suit="&spades;">See our work</a>
+        <a href="#contact" class="btn" data-suit="&diams;">Start a project</a>
+      </div>
+      <div class="hero-hand" aria-hidden="true">
+        <div class="mini">A<span>&spades;</span></div>
+        <div class="mini red">K<span>&hearts;</span></div>
+        <div class="mini">Q<span>&clubs;</span></div>
+        <div class="mini red">J<span>&diams;</span></div>
+        <div class="mini">10<span>&spades;</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Founder -->
+  <section class="section" id="founder">
+    <div class="wrap founder-grid">
+      <div class="portrait-wrap">
+        <figure class="portrait slot" id="portrait" data-src="assets/portrait.jpg" style="margin:0">
+          <img src="assets/portrait.jpg" alt="Portrait of the founder of Atharvix Technologies" onerror="this.parentNode.classList.add('empty');this.remove()">
+          <figcaption class="portrait-tag"><span data-founder-name>Your Name</span><small>Founder, Atharvix Technologies</small></figcaption>
+        </figure>
+      </div>
+      <div class="founder-text">
+        <h2 class="sec-title split">Every good hand starts with who is dealing.</h2>
+        <p class="lead reveal">I started Atharvix to build software that holds its value long after launch day.</p>
+        <p class="reveal">Write your summary here. Who you are, what you have built, and what kind of work you take on. Keep it to two or three short paragraphs so it reads quickly beside your portrait.</p>
+        <p class="reveal">A second paragraph works well for how you work with clients: how you scope, how you communicate, and what someone can expect in the first two weeks of a project.</p>
+        <div class="signature reveal" data-founder-name>Your Name</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="section" id="services">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title split">What we bring to the table</h2>
+        <p class="sec-lede reveal">Four disciplines, one studio. Bring us one, or the whole hand.</p>
+      </div>
+      <div class="deck" id="deck"></div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section class="section" id="work">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title split">Hands we have played</h2>
+        <p class="sec-lede reveal">Selected work, from first sketch to production traffic.</p>
+      </div>
+      <div class="projects" id="projects"></div>
+    </div>
+  </section>
+
+  <!-- Stack -->
+  <section class="section" id="stack">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title split">The stack we bet on</h2>
+        <p class="sec-lede reveal">Tools chosen for how they behave under pressure, not for how new they are.</p>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <!-- Track record -->
+  <section class="section" id="record">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title split">Track record</h2>
+        <p class="sec-lede reveal">Every hand so far, most recent first.</p>
+      </div>
+      <div class="timeline" id="timeline"><div class="tl-line"><i id="tlFill"></i></div></div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="gallery-sec" id="gallery" aria-label="Gallery">
+    <div class="wrap gallery-head">
+      <div class="sec-head">
+        <h2 class="sec-title split">Away from the desk</h2>
+        <p class="sec-lede reveal">Work in the wild, events we joined and rooms we spoke in. Drag, or use the arrows.</p>
+      </div>
+      <div class="g-controls">
+        <button class="g-btn" id="gPrev" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="g-btn" id="gNext" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+    <div class="g-viewport" id="gViewport">
+      <div class="g-track" id="gTrack"></div>
+    </div>
+  </section>
+
+  <!-- Contact + game -->
+  <section class="section" id="contact">
+    <div class="wrap contact-grid">
+      <div>
+        <h2 class="sec-title split">Your move.</h2>
+        <p class="sec-lede reveal" style="margin-top:22px">Tell us what you are building. We reply within two working days with questions, a rough plan and an honest read on cost.</p>
+
+        <form class="form" id="contactForm" novalidate>
+          <!-- Web3Forms: paste your access key from web3forms.com here -->
+          <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY">
+          <input type="hidden" name="subject" value="New enquiry from atharvix website">
+          <input type="hidden" name="from_name" value="Atharvix website">
+          <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off">
+
+          <div class="field">
+            <label for="f-name">Your name</label>
+            <input id="f-name" name="name" type="text" autocomplete="name" required>
+            <span class="bar"></span>
+          </div>
+          <div class="field">
+            <label for="f-email">Email</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" required>
+            <span class="bar"></span>
+          </div>
+          <div class="field">
+            <label for="f-msg">What are you building?</label>
+            <textarea id="f-msg" name="message" required></textarea>
+            <span class="bar"></span>
+          </div>
+          <div class="form-foot">
+            <button class="btn btn-solid" type="submit" id="sendBtn">Send message</button>
+            <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+
+        <div class="direct reveal">
+          <span>Prefer email? <a href="mailto:hello@atharvix.com">hello@atharvix.com</a></span>
+          <span>Or find us on <a href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a> and <a href="https://github.com" target="_blank" rel="noopener">GitHub</a></span>
+        </div>
+      </div>
+
+      <!-- Blackjack -->
+      <div class="table" id="table" aria-label="Blackjack game">
+        <div class="t-top">
+          <h3>Twenty-one</h3>
+          <div class="t-bank">Tokens <strong id="tBank">1,000</strong></div>
+        </div>
+
+        <div class="t-row">
+          <div class="t-label">House <span class="t-score" id="dScore">0</span></div>
+          <div class="hand" id="dHand"></div>
+        </div>
+        <div class="t-row">
+          <div class="t-label">You <span class="t-score" id="pScore">0</span></div>
+          <div class="hand" id="pHand"></div>
+        </div>
+
+        <p class="t-msg" id="tMsg" aria-live="polite">Place a bet, then deal. Think while you play: the house is just another algorithm.</p>
+
+        <div class="t-bet" id="tBet">
+          <button class="t-chip c10" data-chip="10" aria-label="Add 10 tokens"><svg viewBox="0 0 100 100" style="color:#17130E"><use href="#chip-edge"/></svg><span>10</span></button>
+          <button class="t-chip c25" data-chip="25" aria-label="Add 25 tokens"><svg viewBox="0 0 100 100" style="color:#ECE4CF"><use href="#chip-edge"/></svg><span>25</span></button>
+          <button class="t-chip c100" data-chip="100" aria-label="Add 100 tokens"><svg viewBox="0 0 100 100" style="color:#C29A4B"><use href="#chip-edge"/></svg><span>100</span></button>
+          <div class="t-betval">Bet <strong id="tBetVal">0</strong></div>
+        </div>
+
+        <div class="t-actions">
+          <button class="btn btn-solid" id="bDeal">Deal</button>
+          <button class="btn" id="bHit" disabled>Hit</button>
+          <button class="btn" id="bStand" disabled>Stand</button>
+          <button class="btn" id="bDouble" disabled>Double</button>
+          <button class="btn" id="bClear">Clear bet</button>
+        </div>
+        <p class="t-rule">Blackjack pays 3 to 2. The house stands on 17. Tokens have no cash value.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-big" aria-hidden="true">Atharvix</div>
+    <div class="footer-row">
+      <span>&copy; <span id="year">2026</span> Atharvix Technologies. Built by hand, shipped with care.</span>
+      <ul>
+        <li><a href="#work">Work</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#top">Back to top</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ==========================================================================
+   CONTENT — edit these arrays to change the site. Image paths are relative
+   to this file; drop images into /assets and they appear automatically.
+   ========================================================================== */
+const SITE = {
+  founderName: 'Your Name',
+  web3formsEndpoint: 'https://api.web3forms.com/submit'
+};
+
+const SERVICES = [
+  { rank: 'A', suit: '♠', red: false, title: 'Product engineering', text: 'Web and mobile products built to stay fast and stable once real users arrive.' },
+  { rank: 'K', suit: '♥', red: true,  title: 'Interface design', text: 'Interfaces that earn trust on first look and stay out of the way after that.' },
+  { rank: 'Q', suit: '♣', red: false, title: 'AI and automation', text: 'Models, agents and workflows wired into the work your team already does.' },
+  { rank: 'J', suit: '♦', red: true,  title: 'Cloud and infrastructure', text: 'Pipelines, deployments and monitoring that keep the lights on overnight.' }
+];
+
+const PROJECTS = [
+  {
+    image: 'assets/projects/project-1.jpg',
+    title: 'Obsidian matching engine',
+    meta: 'Order book infrastructure, 2025',
+    text: 'A limit order book and matching engine in Rust, handling over 180,000 orders a second with sub-millisecond matching and a live depth chart in the browser.',
+    tags: ['Rust', 'Tokio', 'WebGL2', 'gRPC'],
+    live: '#', source: '#'
+  },
+  {
+    image: 'assets/projects/project-2.jpg',
+    title: 'Solver, an odds engine',
+    meta: 'Game theory calculator, 2024',
+    text: 'A browser-native equity solver compiled to WebAssembly. It runs 10,000 simulated outcomes in under two seconds without a single server round trip.',
+    tags: ['WebAssembly', 'Rust', 'React', 'Web Workers'],
+    live: '#', source: '#'
+  },
+  {
+    image: 'assets/projects/project-3.jpg',
+    title: 'Aegis verifiable shuffle',
+    meta: 'Cryptography, 2024',
+    text: 'A fair-deal protocol using zero-knowledge proofs, so every player can verify a shuffled deck without any party seeing cards that have not been revealed.',
+    tags: ['zk-SNARKs', 'Circom', 'Solidity', 'Next.js'],
+    live: '#', source: '#'
+  },
+  {
+    image: 'assets/projects/project-4.jpg',
+    title: 'Hyperion cluster map',
+    meta: 'Observability, 2023',
+    text: 'Kernel-level network tracing for Kubernetes, rendered as a live 3D map of every service call, at under 0.3% CPU overhead.',
+    tags: ['Go', 'eBPF', 'Three.js', 'Kubernetes'],
+    live: '#', source: '#'
+  }
+];
+
+const STACK = [
+  { label: 'Rust', sub: 'SYSTEMS', color: '#ECE4CF', ink: '#17130E', title: 'Low-latency core', text: 'Rust, Go, C++, WebAssembly, gRPC' },
+  { label: 'TS', sub: 'INTERFACE', color: '#7A1E2B', ink: '#ECE4CF', title: 'Front end', text: 'TypeScript, React, Next.js, Three.js, GLSL' },
+  { label: 'SQL', sub: 'DATA', color: '#1E1A14', ink: '#C29A4B', title: 'Data and streaming', text: 'PostgreSQL, Kafka, Redis, ClickHouse' },
+  { label: 'K8s', sub: 'CLOUD', color: '#13312A', ink: '#ECE4CF', title: 'Cloud and DevOps', text: 'Kubernetes, AWS, Terraform, Docker' }
+];
+
+const RECORD = [
+  { when: '2024 to now', where: 'Atharvix Technologies', title: 'Founder', text: 'Started the studio to take on product work end to end, from first conversation to production.' },
+  { when: '2023 to 2024', where: 'Kronos Quantitative Labs', title: 'Principal systems architect', text: 'Rebuilt a real-time liquidity engine, replacing a Node.js bottleneck with a Rust worker mesh and lifting throughput by 410%.' },
+  { when: '2021 to 2023', where: 'Valkyrie Cloud Security', title: 'Senior full-stack engineer', text: 'Built a threat-hunting map that renders 50,000 live network nodes at 60 frames a second.' },
+  { when: '2019 to 2021', where: 'Nexus Fintech', title: 'Systems and front-end developer', text: 'Shipped high-frequency order book interfaces and cut client memory use by 58% with canvas-rendered tables.' }
+];
+
+const GALLERY = [
+  { image: 'assets/gallery/g1.jpg', meta: 'Hackathon, 2025', title: 'Forty-eight hours, one prototype', text: 'Placed first out of 120 teams with a real-time fraud detection demo.' },
+  { image: 'assets/gallery/g2.jpg', meta: 'Talk, 2025', title: 'Speaking on latency', text: 'A session on why the last millisecond is the most expensive one.' },
+  { image: 'assets/gallery/g3.jpg', meta: 'Client launch, 2024', title: 'Going live', text: 'The night a client platform crossed its first ten thousand users.' },
+  { image: 'assets/gallery/g4.jpg', meta: 'Workshop, 2024', title: 'Teaching the fundamentals', text: 'A hands-on afternoon on building systems that fail gracefully.' },
+  { image: 'assets/gallery/g5.jpg', meta: 'Studio, 2024', title: 'Where the work happens', text: 'Whiteboards, late nights and more coffee than anyone admits to.' },
+  { image: 'assets/gallery/g6.jpg', meta: 'Conference, 2023', title: 'In the room', text: 'Meeting the people building the next decade of infrastructure.' }
+];
+
+/* ==========================================================================
+   Setup
+   ========================================================================== */
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+const hasGSAP = !!(window.gsap && window.ScrollTrigger);
+if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
+document.getElementById('year').textContent = new Date().getFullYear();
+document.querySelectorAll('[data-founder-name]').forEach(el => el.textContent = SITE.founderName);
+
+// logo detection: show uploaded logo if assets/logo.png loads
+(function () {
+  const probe = new Image();
+  probe.onload = () => document.body.classList.add('has-logo');
+  probe.src = 'assets/logo.png';
+})();
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const imgFallback = `onerror="this.parentNode.classList.add('empty');this.remove()"`;
+
+/* ---------- Render content ---------- */
+document.getElementById('deck').innerHTML = SERVICES.map(s => `
+  <article class="pcard${s.red ? ' red' : ''}" data-suit="${s.suit}">
+    <div class="pcard-idx">${s.rank}<span>${s.suit}</span></div>
+    <div class="pcard-big" aria-hidden="true">${s.suit}</div>
+    <div class="pcard-body">
+      <h3>${esc(s.title)}</h3>
+      <p>${esc(s.text)}</p>
+    </div>
+  </article>`).join('');
+
+document.getElementById('projects').innerHTML = PROJECTS.map((p, i) => `
+  <article class="proj">
+    <figure class="proj-media slot" data-src="${esc(p.image)}" style="margin:0" data-suit="♦">
+      <img src="${esc(p.image)}" alt="Screenshot of ${esc(p.title)}" loading="lazy" ${imgFallback}>
+    </figure>
+    <div class="proj-text">
+      <div class="proj-num">No. ${i + 1}</div>
+      <h3 class="split">${esc(p.title)}</h3>
+      <p class="proj-meta">${esc(p.meta)}</p>
+      <p>${esc(p.text)}</p>
+      <ul class="tags">${p.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      <div class="proj-links">
+        <a class="link-u" href="${esc(p.live)}" target="_blank" rel="noopener">View live</a>
+        <a class="link-u" href="${esc(p.source)}" target="_blank" rel="noopener">Read the code</a>
+      </div>
+    </div>
+  </article>`).join('');
+
+document.getElementById('chips').innerHTML = STACK.map(c => `
+  <div class="chip-item">
+    <div class="chip" data-suit="♣">
+      <div class="chip-face" style="background:${c.color};color:${c.ink};box-shadow:0 24px 40px -18px rgba(0,0,0,.8), inset 0 0 0 2px rgba(0,0,0,.2)">
+        <svg viewBox="0 0 100 100"><use href="#chip-edge"/></svg>
+        <div class="chip-label">${esc(c.label)}<small style="color:${c.ink};opacity:.7">${esc(c.sub)}</small></div>
+      </div>
+    </div>
+    <h3>${esc(c.title)}</h3>
+    <p>${esc(c.text)}</p>
+  </div>`).join('');
+
+document.getElementById('timeline').insertAdjacentHTML('beforeend', RECORD.map(r => `
+  <div class="tl-item">
+    <div class="tl-node"><svg viewBox="0 0 20 20"><rect x="4" y="4" width="12" height="12" transform="rotate(45 10 10)" fill="#071510" stroke="#C29A4B"/></svg></div>
+    <div><div class="tl-when">${esc(r.when)}</div><div class="tl-where">${esc(r.where)}</div></div>
+    <div><h3>${esc(r.title)}</h3><p>${esc(r.text)}</p></div>
+  </div>`).join(''));
+
+const galleryHTML = GALLERY.map((g, i) => `
+  <article class="g-item" data-suit="♥">
+    <img src="${esc(g.image)}" alt="" draggable="false" loading="lazy"
+      onload="this.parentNode.classList.add('has-img')" onerror="this.classList.add('missing')">
+    <div class="g-idx" aria-hidden="true">${String(i + 1).padStart(2, '0')}</div>
+    <div class="g-hint-src">${esc(g.image)}</div>
+    <div class="g-text">
+      <p class="g-meta">${esc(g.meta)}</p>
+      <h3>${esc(g.title)}</h3>
+      <p>${esc(g.text)}</p>
+    </div>
+  </article>`).join('');
+// two copies so the strip loops without a seam
+document.getElementById('gTrack').innerHTML = galleryHTML + galleryHTML.replace(/<article class="g-item"/g, '<article aria-hidden="true" class="g-item"');
+
+/* ---------- Split headings into words for reveals ---------- */
+document.querySelectorAll('.split').forEach(el => {
+  el.innerHTML = el.textContent.trim().split(/\s+/).map(w => `<span class="w"><span class="wi">${esc(w)}</span></span>`).join(' ');
+});
+
+/* ---------- Hero letters ---------- */
+const heroWord = document.querySelector('.hero-word');
+heroWord.innerHTML = heroWord.textContent.split('').map(c => `<span class="l">${c}</span>`).join('');
+
+/* ==========================================================================
+   Smooth scrolling
+   ========================================================================== */
+let lenis = null;
+if (window.Lenis && !reduceMotion) {
+  lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 1 });
+  lenis.stop();
+  if (hasGSAP) {
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  } else {
+    const raf = t => { lenis.raf(t); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  }
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    const target = id === '#top' ? 0 : document.querySelector(id);
+    if (target === null) return;
+    e.preventDefault();
+    navLinks.classList.remove('open');
+    navMenu.setAttribute('aria-expanded', 'false');
+    if (lenis) lenis.scrollTo(target, { offset: 0, duration: 1.6 });
+    else window.scrollTo({ top: target === 0 ? 0 : target.offsetTop, behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+});
+
+/* ==========================================================================
+   Nav
+   ========================================================================== */
+const nav = document.getElementById('nav');
+const navLinks = document.getElementById('navLinks');
+const navMenu = document.getElementById('navMenu');
+navMenu.addEventListener('click', () => {
+  const open = navLinks.classList.toggle('open');
+  navMenu.setAttribute('aria-expanded', String(open));
+  navMenu.textContent = open ? 'Close' : 'Menu';
+});
+let lastY = 0;
+function onScrollNav(y) {
+  nav.classList.toggle('solid', y > 40);
+  nav.classList.toggle('hide', y > lastY && y > 400 && !navLinks.classList.contains('open'));
+  lastY = y;
+}
+const sections = [...document.querySelectorAll('main section[id]')];
+const linkMap = new Map([...navLinks.querySelectorAll('a')].map(a => [a.getAttribute('href').slice(1), a]));
+function onScrollActive() {
+  const mid = window.innerHeight * 0.4;
+  let current = null;
+  sections.forEach(s => { const r = s.getBoundingClientRect(); if (r.top <= mid && r.bottom > mid) current = s.id; });
+  linkMap.forEach((a, id) => a.classList.toggle('active', id === current));
+}
+
+/* ==========================================================================
+   Engraving canvas: a live guilloché rosette that follows the scroll
+   ========================================================================== */
+const cv = document.getElementById('engraving');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+let mouseX = 0.5, mouseY = 0.5, smX = 0.5, smY = 0.5;
+let scrollY = 0, smScroll = 0;
+const isSmall = () => W < 760;
+
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 1.75);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W * DPR; cv.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+window.addEventListener('pointermove', e => { mouseX = e.clientX / W; mouseY = e.clientY / H; }, { passive: true });
+
+function ring(R, copies, n, steps, base, amp, amp2, ph, alpha) {
+  ctx.strokeStyle = `rgba(194,154,75,${alpha})`;
+  const TAU = Math.PI * 2;
+  for (let j = 0; j < copies; j++) {
+    const off = (j / copies) * TAU / n;
+    ctx.beginPath();
+    for (let s = 0; s <= steps; s++) {
+      const th = (s / steps) * TAU;
+      const r = R * (base + amp * Math.sin(n * th + ph) + amp2 * Math.sin(3 * n * th - ph * 1.7));
+      const a = th + off;
+      const x = r * Math.cos(a), y = r * Math.sin(a);
+      s ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.stroke();
+  }
+}
+
+let introProgress = 0; // 0 → 1 after loader, draws the rosette in
+function drawEngraving(time) {
+  smX += (mouseX - smX) * 0.05;
+  smY += (mouseY - smY) * 0.05;
+  smScroll += (scrollY - smScroll) * 0.08;
+
+  ctx.clearRect(0, 0, W, H);
+  const heroP = Math.min(1, smScroll / H);                 // 0 in hero → 1 after hero
+  const docP = smScroll / Math.max(1, document.documentElement.scrollHeight - H);
+  const t = reduceMotion ? 0 : time * 0.00012;
+
+  // position: right of hero headline, then drifts across the page as you scroll
+  const heroCx = isSmall() ? W * 0.5 : W * 0.7;
+  const heroCy = isSmall() ? H * 0.4 : H * 0.52;
+  const driftCx = W * 0.5 + Math.sin(smScroll / 1500) * W * 0.32;
+  const driftCy = H * 0.5 + Math.cos(smScroll / 1900) * H * 0.18;
+  const cx = heroCx + (driftCx - heroCx) * heroP + (smX - 0.5) * 40;
+  const cy = heroCy + (driftCy - heroCy) * heroP + (smY - 0.5) * 30;
+  const R0 = isSmall() ? Math.min(W * 0.48, H * 0.34) : Math.min(W * 0.36, H * 0.46);
+  const R = (R0 + (Math.max(W, H) * 0.5 - R0) * heroP) * (0.6 + 0.4 * introProgress);
+  const baseAlpha = (isSmall() ? 0.22 : 0.42) * (1 - heroP * 0.62) * introProgress;
+  const lw = isSmall() ? 0.5 : 0.65;
+
+  const ph = t * 6 + docP * 14 + (smX - 0.5) * 1.2;
+  const breathe = 1 + Math.sin(time * 0.0006) * (reduceMotion ? 0 : 0.03);
+  const ampMouse = 1 + (smY - 0.5) * 0.5;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(t * 0.8 + docP * Math.PI * 2.5);
+  ctx.lineWidth = lw;
+  const lite = isSmall() ? 0.6 : 1;
+  // outer band
+  ring(R * breathe, Math.round(44 * lite), 18, 540, 0.9, 0.035 * ampMouse, 0.012, ph * 1.3, baseAlpha * 0.9);
+  // main rosette
+  ring(R, Math.round(36 * lite), 9, 420, 0.6, 0.16 * ampMouse, 0.05, ph, baseAlpha);
+  // inner seal
+  ring(R * breathe, Math.round(24 * lite), 6, 260, 0.26, 0.06, 0.02, -ph * 1.5, baseAlpha * 1.1);
+  // fine guide circles
+  ctx.strokeStyle = `rgba(194,154,75,${baseAlpha * 0.6})`;
+  [0.985, 0.8, 0.4, 0.17].forEach(k => { ctx.beginPath(); ctx.arc(0, 0, R * k, 0, Math.PI * 2); ctx.stroke(); });
+  ctx.restore();
+}
+
+/* ==========================================================================
+   Cursor
+   ========================================================================== */
+const cursor = document.getElementById('cursor');
+const cursorSuit = document.getElementById('cursorSuit');
+let cx = -100, cy = -100, rx = -100, ry = -100;
+if (finePointer && !reduceMotion) {
+  document.body.classList.add('cursor-on');
+  window.addEventListener('pointermove', e => { cx = e.clientX; cy = e.clientY; }, { passive: true });
+  window.addEventListener('pointerdown', () => cursor.classList.add('press'));
+  window.addEventListener('pointerup', () => cursor.classList.remove('press'));
+  document.addEventListener('pointerover', e => {
+    const el = e.target.closest('a, button, .pcard, .proj-media, .chip, .g-item, input, textarea, label');
+    cursor.classList.toggle('hover', !!el);
+    if (el) cursorSuit.textContent = el.dataset.suit || (el.closest('[data-suit]')?.dataset.suit) || '♠';
+  });
+  document.documentElement.addEventListener('mouseleave', () => { cx = cy = -100; });
+}
+const dotEl = cursor.querySelector('.cursor-dot');
+const chipEl = cursor.querySelector('.cursor-chip');
+function drawCursor() {
+  rx += (cx - rx) * 0.16; ry += (cy - ry) * 0.16;
+  dotEl.style.transform = `translate(${cx}px, ${cy}px)`;
+  chipEl.style.transform = `translate(${rx}px, ${ry}px)`;
+}
+
+/* ==========================================================================
+   Scroll rail
+   ========================================================================== */
+const railFill = document.getElementById('railFill');
+const railChip = document.getElementById('railChip');
+function drawRail() {
+  const max = document.documentElement.scrollHeight - H;
+  const p = max > 0 ? Math.min(1, Math.max(0, smScroll / max)) : 0;
+  const railH = H * 0.64;
+  railFill.style.transform = `scaleY(${p})`;
+  railChip.style.transform = `translateY(${p * railH}px) rotate(${p * 1080}deg)`;
+}
+
+/* ==========================================================================
+   Main loop
+   ========================================================================== */
+function readScroll() { scrollY = lenis ? lenis.scroll : window.scrollY; }
+window.addEventListener('scroll', () => { readScroll(); onScrollNav(scrollY); onScrollActive(); }, { passive: true });
+if (lenis) lenis.on('scroll', () => { readScroll(); onScrollNav(scrollY); onScrollActive(); });
+
+function frame(time) {
+  drawEngraving(time);
+  if (finePointer) drawCursor();
+  drawRail();
+  galleryTick(time);
+  requestAnimationFrame(frame);
+}
+
+/* ==========================================================================
+   Gallery: auto-scroll plus drag, wheel and arrow control, looping
+   ========================================================================== */
+const gTrack = document.getElementById('gTrack');
+const gViewport = document.getElementById('gViewport');
+let gX = 0, gTarget = 0, gHalf = 0, gHover = false, gDrag = false, gLast = 0, gPrevT = 0;
+const G_SPEED = reduceMotion ? 0 : 38; // px per second
+function measureGallery() { gHalf = gTrack.scrollWidth / 2; }
+window.addEventListener('resize', measureGallery);
+window.addEventListener('load', measureGallery);
+measureGallery();
+
+function wrap(v) { if (!gHalf) return v; return ((v % gHalf) - gHalf) % gHalf; }
+function galleryTick(time) {
+  const dt = Math.min(0.05, (time - gPrevT) / 1000 || 0);
+  gPrevT = time;
+  if (!gDrag && !gHover) gTarget -= G_SPEED * dt; // steady drift
+  // page scroll speed nudges the strip, so it reacts to the rest of the page
+  if (!gDrag) gTarget -= Math.abs(scrollVel) * 0.18;
+  gX += (gTarget - gX) * 0.1;
+  // keep both numbers inside one loop length
+  if (gHalf) {
+    const w = wrap(gX); const d = w - gX; gX = w; gTarget += d;
+  }
+  gTrack.style.transform = `translate3d(${gX}px,0,0)`;
+}
+let scrollVel = 0, prevScroll = 0;
+setInterval(() => { scrollVel = scrollY - prevScroll; prevScroll = scrollY; scrollVel *= 0.15; }, 50);
+
+gViewport.addEventListener('pointerenter', () => gHover = true);
+gViewport.addEventListener('pointerleave', () => { gHover = false; gDrag = false; });
+gViewport.addEventListener('pointerdown', e => {
+  gDrag = true; gLast = e.clientX;
+  gViewport.setPointerCapture(e.pointerId);
+});
+gViewport.addEventListener('pointermove', e => {
+  if (!gDrag) return;
+  const dx = e.clientX - gLast; gLast = e.clientX;
+  gTarget += dx * 1.2;
+});
+['pointerup', 'pointercancel'].forEach(ev => gViewport.addEventListener(ev, () => { gDrag = false; if (!finePointer) gHover = false; }));
+gViewport.addEventListener('wheel', e => {
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { e.preventDefault(); gTarget -= e.deltaX; }
+}, { passive: false });
+const itemW = () => gTrack.firstElementChild ? gTrack.firstElementChild.getBoundingClientRect().width : 400;
+document.getElementById('gPrev').addEventListener('click', () => gTarget += itemW());
+document.getElementById('gNext').addEventListener('click', () => gTarget -= itemW());
+
+/* ==========================================================================
+   Loader → intro
+   ========================================================================== */
+const loader = document.getElementById('loader');
+const loaderChip = document.getElementById('loaderChip');
+const LOADER_MS = reduceMotion ? 400 : 2000;
+const startTime = performance.now();
+requestAnimationFrame(frame);
+
+function introHero() {
+  const letters = document.querySelectorAll('.hero-word .l');
+  if (hasGSAP && !reduceMotion) {
+    gsap.to({ v: 0 }, { v: 1, duration: 2.2, ease: 'power3.out', onUpdate() { introProgress = this.targets()[0].v; } });
+    gsap.from(letters, { yPercent: -120, rotate: () => gsap.utils.random(-25, 25), opacity: 0, duration: 1.1, ease: 'expo.out', stagger: 0.06 });
+    gsap.from('.hero-sub', { opacity: 0, letterSpacing: '1.4em', duration: 1.6, ease: 'expo.out', delay: 0.35 });
+    gsap.from('.hero-copy, .hero-ctas', { opacity: 0, y: 24, duration: 1.1, ease: 'power3.out', stagger: 0.12, delay: 0.55 });
+    gsap.from('.hero-frame', { opacity: 0, scale: 1.03, duration: 1.6, ease: 'power2.out' });
+    gsap.from('.hero-hand .mini', { x: 260, y: 120, rotate: 40, opacity: 0, duration: 1, ease: 'expo.out', stagger: 0.08, delay: 0.7 });
+    gsap.to('.hero-hand .mini', { rotate: i => (i - 2) * 9, duration: 0.9, ease: 'power3.out', delay: 1.5, stagger: 0.04 });
+    gsap.from('.nav', { yPercent: -100, duration: 1, ease: 'power3.out', delay: 0.3, clearProps: 'transform' });
+  } else {
+    introProgress = 1;
+  }
+}
+
+function finishLoader() {
+  loaderChip.classList.add('flip');
+  setTimeout(() => {
+    loader.classList.add('done');
+    document.body.classList.remove('is-loading');
+    if (lenis) lenis.start();
+    introHero();
+    setTimeout(() => { loader.classList.add('gone'); if (hasGSAP) ScrollTrigger.refresh(); measureGallery(); }, 950);
+  }, reduceMotion ? 0 : 450);
+}
+function whenReady() {
+  const wait = Math.max(0, LOADER_MS - 450 - (performance.now() - startTime));
+  setTimeout(finishLoader, wait);
+}
+if (document.readyState === 'complete') whenReady(); else window.addEventListener('load', whenReady);
+// never hold the page longer than 4s even if an asset stalls
+setTimeout(() => { if (!loader.classList.contains('done')) finishLoader(); }, 4000);
+
+/* ==========================================================================
+   Scroll animations
+   ========================================================================== */
+if (hasGSAP && !reduceMotion) {
+  // headings: words rise out of their line
+  gsap.utils.toArray('.split').forEach(el => {
+    gsap.from(el.querySelectorAll('.wi'), {
+      yPercent: 110, rotate: 4, duration: 1.1, ease: 'expo.out', stagger: 0.05,
+      scrollTrigger: { trigger: el, start: 'top 86%' }
+    });
+  });
+  // body copy: comes into focus
+  gsap.utils.toArray('.reveal').forEach(el => {
+    gsap.from(el, { opacity: 0, filter: 'blur(8px)', y: 14, duration: 1.2, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 90%' } });
+  });
+
+  // hero leaves: headline drifts up and apart as you scroll away
+  gsap.to('.hero-in', { yPercent: -18, opacity: 0.2, ease: 'none',
+    scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  gsap.to('.hero-hand', { y: -160, rotate: -12, ease: 'none',
+    scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+
+  // portrait: turns over like a face-down card
+  gsap.fromTo('#portrait', { rotateY: -70, rotateZ: -6, opacity: 0.2 }, { rotateY: 0, rotateZ: 0, opacity: 1, ease: 'power2.out',
+    scrollTrigger: { trigger: '#founder', start: 'top 85%', end: 'center 60%', scrub: 1 } });
+  gsap.fromTo('#portrait img', { scale: 1.25 }, { scale: 1, ease: 'none',
+    scrollTrigger: { trigger: '#founder', start: 'top bottom', end: 'bottom top', scrub: true } });
+
+  // services: cards dealt from one stack into their places
+  const deckCards = gsap.utils.toArray('.pcard');
+  const mm = gsap.matchMedia();
+  mm.add('(min-width: 521px)', () => {
+      gsap.from(deckCards, {
+        x: (i, el) => { const d = document.getElementById('deck').getBoundingClientRect(); const r = el.getBoundingClientRect(); return d.left + d.width / 2 - (r.left + r.width / 2); },
+        y: (i, el) => { const d = document.getElementById('deck').getBoundingClientRect(); const r = el.getBoundingClientRect(); return (d.top + d.height / 2 - (r.top + r.height / 2)) + 140; },
+        rotate: i => (i - 1.5) * 8, rotateY: 180, ease: 'power2.inOut', stagger: 0.06,
+        scrollTrigger: { trigger: '#deck', start: 'top 92%', end: 'top 35%', scrub: 1, invalidateOnRefresh: true }
+      });
+  });
+  mm.add('(max-width: 520px)', () => {
+      deckCards.forEach(c => gsap.from(c, { x: 120, rotate: 10, opacity: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: c, start: 'top 88%' } }));
+  });
+
+  // projects: image uncovers, then parallaxes inside its frame
+  gsap.utils.toArray('.proj').forEach((row, i) => {
+    const media = row.querySelector('.proj-media');
+    const img = row.querySelector('.proj-media img');
+    gsap.fromTo(media, { clipPath: i % 2 ? 'inset(0 0 0 100% round 12px)' : 'inset(0 100% 0 0 round 12px)' },
+      { clipPath: 'inset(0 0% 0 0% round 12px)', ease: 'power3.inOut', duration: 1.4, scrollTrigger: { trigger: row, start: 'top 80%' } });
+    if (img) gsap.fromTo(img, { yPercent: -8 }, { yPercent: 8, ease: 'none', scrollTrigger: { trigger: row, start: 'top bottom', end: 'bottom top', scrub: true } });
+    gsap.from(row.querySelectorAll('.tags li'), { opacity: 0, y: 10, stagger: 0.05, duration: 0.6, scrollTrigger: { trigger: row, start: 'top 70%' } });
+  });
+
+  // stack: chips drop and settle, spinning on their edge
+  gsap.from('.chip-face', { y: -260, rotateX: 75, rotate: -200, opacity: 0, duration: 1.3, ease: 'bounce.out', stagger: 0.12,
+    scrollTrigger: { trigger: '#chips', start: 'top 80%' } });
+
+  // track record: brass line draws with the scroll
+  gsap.to('#tlFill', { scaleY: 1, ease: 'none', scrollTrigger: { trigger: '#timeline', start: 'top 70%', end: 'bottom 60%', scrub: true } });
+  gsap.utils.toArray('.tl-item').forEach(item => {
+    gsap.from(item.querySelector('.tl-node'), { scale: 0, rotate: 180, duration: 0.8, ease: 'back.out(2)', scrollTrigger: { trigger: item, start: 'top 72%' } });
+    gsap.from(item.children[1], { x: -30, opacity: 0, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: item, start: 'top 80%' } });
+    gsap.from(item.children[2], { x: 30, opacity: 0, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: item, start: 'top 80%' } });
+  });
+
+  // gallery: the strip slides in from the right
+  gsap.from('#gViewport', { x: '30vw', opacity: 0, duration: 1.6, ease: 'expo.out', scrollTrigger: { trigger: '#gViewport', start: 'top 88%' } });
+
+  // contact: form fields rise one by one, the table tilts up into view
+  gsap.from('.form .field, .form-foot', { y: 30, opacity: 0, stagger: 0.1, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: '.form', start: 'top 85%' } });
+  gsap.fromTo('#table', { rotateX: 28, y: 80, opacity: 0, transformPerspective: 1400, transformOrigin: '50% 100%' },
+    { rotateX: 0, y: 0, opacity: 1, ease: 'power2.out', scrollTrigger: { trigger: '#table', start: 'top 95%', end: 'top 45%', scrub: 1 } });
+
+  // footer wordmark slides across
+  gsap.fromTo('.footer-big', { xPercent: -12 }, { xPercent: 0, ease: 'none', scrollTrigger: { trigger: '.footer', start: 'top bottom', end: 'bottom bottom', scrub: true } });
+}
+
+/* ==========================================================================
+   Contact form (Web3Forms)
+   ========================================================================== */
+const form = document.getElementById('contactForm');
+const statusEl = document.getElementById('formStatus');
+const sendBtn = document.getElementById('sendBtn');
+const $f = id => document.getElementById(id);
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  statusEl.className = 'form-status';
+  const name = $f('f-name').value.trim(), email = $f('f-email').value.trim(), msg = $f('f-msg').value.trim();
+  if (!name || !email || !msg) { statusEl.className = 'form-status err'; statusEl.textContent = 'Fill in your name, email and project to send.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { statusEl.className = 'form-status err'; statusEl.textContent = 'That email address looks incomplete. Check it and send again.'; $f('f-email').focus(); return; }
+  sendBtn.disabled = true;
+  statusEl.textContent = 'Sending…';
+  try {
+    const res = await fetch(SITE.web3formsEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(Object.fromEntries(new FormData(form)))
+    });
+    const data = await res.json();
+    if (data.success) {
+      statusEl.className = 'form-status ok';
+      statusEl.textContent = 'Message sent. Expect a reply within two working days.';
+      form.reset();
+    } else {
+      throw new Error(data.message || 'The form service rejected the message');
+    }
+  } catch (err) {
+    statusEl.className = 'form-status err';
+    statusEl.textContent = `Message not sent: ${err.message}. Try again, or email hello@atharvix.com.`;
+  } finally {
+    sendBtn.disabled = false;
+  }
+});
+
+/* ==========================================================================
+   Twenty-one
+   ========================================================================== */
+(function blackjack() {
+  const $ = id => document.getElementById(id);
+  const ui = { bank: $('tBank'), bet: $('tBetVal'), msg: $('tMsg'), dHand: $('dHand'), pHand: $('pHand'), dScore: $('dScore'), pScore: $('pScore'),
+    deal: $('bDeal'), hit: $('bHit'), stand: $('bStand'), dbl: $('bDouble'), clear: $('bClear'), chips: document.querySelectorAll('[data-chip]') };
+  const SUITS = ['♠', '♥', '♦', '♣'];
+  const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  let deck = [], player = [], dealer = [], bank = 1000, bet = 0, lastBet = 0, phase = 'bet', busy = false;
+
+  const fmt = n => n.toLocaleString('en-US');
+  function newDeck() {
+    deck = [];
+    for (let d = 0; d < 4; d++) for (const s of SUITS) for (const r of RANKS) deck.push({ r, s });
+    for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  }
+  function draw() { if (deck.length < 30) newDeck(); return deck.pop(); }
+  function score(hand) {
+    let t = 0, aces = 0;
+    hand.forEach(c => { if (c.hidden) return; if (c.r === 'A') { aces++; t += 11; } else t += ['J', 'Q', 'K'].includes(c.r) ? 10 : +c.r; });
+    while (t > 21 && aces) { t -= 10; aces--; }
+    return t;
+  }
+  const isBJ = h => h.length === 2 && score(h) === 21;
+  function cardEl(c) {
+    const red = c.s === '♥' || c.s === '♦';
+    const el = document.createElement('div');
+    el.className = `card${red ? ' red' : ''}${c.hidden ? ' down' : ''}`;
+    el.innerHTML = `<div class="front"><b>${c.r}</b><i>${c.s}</i><em>${c.s}</em></div><div class="back"></div>`;
+    el.setAttribute('aria-label', c.hidden ? 'Face-down card' : `${c.r} of ${c.s}`);
+    return el;
+  }
+  function render() {
+    ui.bank.textContent = fmt(bank);
+    ui.bet.textContent = fmt(bet);
+    ui.pScore.textContent = score(player);
+    ui.dScore.textContent = score(dealer);
+    const playing = phase === 'play' && !busy;
+    ui.hit.disabled = !playing;
+    ui.stand.disabled = !playing;
+    ui.dbl.disabled = !(playing && player.length === 2 && bank >= bet);
+    ui.deal.disabled = phase === 'play' || busy;
+    ui.clear.disabled = phase === 'play' || bet === 0;
+    ui.chips.forEach(b => b.disabled = phase === 'play' || +b.dataset.chip > bank);
+    ui.deal.textContent = bank === 0 && bet === 0 && phase !== 'play' ? 'Buy in again' : 'Deal';
+  }
+  const say = t => { ui.msg.textContent = t; };
+  const wait = ms => new Promise(r => setTimeout(r, reduceMotion ? 0 : ms));
+  async function give(hand, el, hidden = false) {
+    const c = draw(); c.hidden = hidden; hand.push(c); el.appendChild(cardEl(c)); render(); await wait(320);
+  }
+
+  ui.chips.forEach(b => b.addEventListener('click', () => {
+    const v = +b.dataset.chip;
+    if (phase === 'done') { phase = 'bet'; }
+    if (v <= bank) { bank -= v; bet += v; render(); say(`Bet is ${fmt(bet)}. Add more or deal.`); }
+  }));
+  ui.clear.addEventListener('click', () => { bank += bet; bet = 0; render(); say('Bet cleared. Place a bet, then deal.'); });
+
+  ui.deal.addEventListener('click', async () => {
+    if (bank === 0 && bet === 0) { bank = 1000; render(); say('Fresh stack of 1,000 tokens. Place a bet, then deal.'); return; }
+    if (bet === 0) {
+      if (lastBet && lastBet <= bank) { bank -= lastBet; bet = lastBet; }
+      else { say('Place a bet first: tap a chip.'); return; }
+    }
+    phase = 'play'; busy = true; lastBet = bet;
+    player = []; dealer = []; ui.pHand.innerHTML = ''; ui.dHand.innerHTML = '';
+    say('Dealing…');
+    render();
+    await give(player, ui.pHand); await give(dealer, ui.dHand);
+    await give(player, ui.pHand); await give(dealer, ui.dHand, true);
+    busy = false;
+    if (isBJ(player)) { await revealAndSettle(true); return; }
+    say(`You have ${score(player)}. Hit or stand?`);
+    render();
+  });
+
+  ui.hit.addEventListener('click', async () => {
+    busy = true; render();
+    await give(player, ui.pHand);
+    busy = false;
+    const s = score(player);
+    if (s > 21) { end(`Bust at ${s}. The house takes ${fmt(bet)}.`, 0); return; }
+    if (s === 21) { await revealAndSettle(); return; }
+    say(`You have ${s}. Hit or stand?`); render();
+  });
+  ui.stand.addEventListener('click', () => revealAndSettle());
+  ui.dbl.addEventListener('click', async () => {
+    bank -= bet; bet *= 2; busy = true; render();
+    await give(player, ui.pHand);
+    busy = false;
+    const s = score(player);
+    if (s > 21) { end(`Doubled and bust at ${s}. The house takes ${fmt(bet)}.`, 0); return; }
+    await revealAndSettle();
+  });
+
+  async function revealAndSettle(playerBJ = false) {
+    busy = true; render();
+    const hole = dealer[1]; hole.hidden = false;
+    ui.dHand.children[1].classList.remove('down');
+    ui.dHand.children[1].setAttribute('aria-label', `${hole.r} of ${hole.s}`);
+    render(); await wait(520);
+    const dBJ = isBJ(dealer);
+    if (playerBJ || dBJ) {
+      busy = false;
+      if (playerBJ && dBJ) return end('Both blackjack. Push, your bet is returned.', bet);
+      if (playerBJ) return end(`Blackjack. Paid 3 to 2: you win ${fmt(Math.floor(bet * 1.5))}.`, bet + Math.floor(bet * 1.5));
+      return end('House blackjack. Better odds next hand.', 0);
+    }
+    while (score(dealer) < 17) await give(dealer, ui.dHand);
+    busy = false;
+    const p = score(player), d = score(dealer);
+    if (d > 21) return end(`House busts at ${d}. You win ${fmt(bet)}.`, bet * 2);
+    if (p > d) return end(`${p} beats ${d}. You win ${fmt(bet)}.`, bet * 2);
+    if (p < d) return end(`House wins, ${d} to ${p}.`, 0);
+    return end(`Push at ${p}. Your bet is returned.`, bet);
+  }
+  function end(text, payout) {
+    bank += payout; bet = 0; phase = 'done';
+    if (bank === 0) text += ' Out of tokens. Press Buy in again.';
+    else text += ' Deal to repeat the same bet.';
+    say(text); render();
+  }
+
+  newDeck(); render();
+})();
+</script>
+</body>
+</html>
