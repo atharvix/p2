@@ -344,19 +344,19 @@ export default function App() {
       deckCards.forEach(c => {
         gsap.fromTo(c,
           {
-            x: 120,
-            rotate: 10,
+            y: 36,
+            rotate: 0,
             rotateY: 0,
             opacity: 0
           },
           {
-            x: 0,
+            y: 0,
             rotate: 0,
             rotateY: 0,
             opacity: 1,
-            duration: 0.9,
+            duration: 0.8,
             ease: 'expo.out',
-            scrollTrigger: { trigger: c, start: 'top 88%', once: true, fastScrollEnd: true }
+            scrollTrigger: { trigger: c, start: 'top 90%', once: true, fastScrollEnd: true }
           }
         );
       });
@@ -453,7 +453,7 @@ export default function App() {
       if (item.children[1]) {
         gsap.fromTo(item.children[1],
           {
-            x: -30,
+            x: -20,
             opacity: 0
           },
           {
@@ -468,7 +468,7 @@ export default function App() {
       if (item.children[2]) {
         gsap.fromTo(item.children[2],
           {
-            x: 30,
+            x: 20,
             opacity: 0
           },
           {
@@ -482,55 +482,94 @@ export default function App() {
       }
     });
 
-    // Gallery viewport slide in
-    gsap.fromTo('#gViewport',
-      {
-        x: '30vw',
-        opacity: 0
-      },
-      {
-        x: 0,
-        opacity: 1,
-        duration: 1.6,
-        ease: 'expo.out',
-        scrollTrigger: { trigger: '#gViewport', start: 'top 88%', once: true, fastScrollEnd: true }
-      }
-    );
+    // Gallery viewport slide in (responsive: vertical entrance on mobile to prevent horizontal scroll blowouts)
+    mm.add('(min-width: 769px)', () => {
+      gsap.fromTo('#gViewport',
+        {
+          x: '24vw',
+          opacity: 0
+        },
+        {
+          x: 0,
+          opacity: 1,
+          duration: 1.6,
+          ease: 'expo.out',
+          scrollTrigger: { trigger: '#gViewport', start: 'top 88%', once: true, fastScrollEnd: true }
+        }
+      );
 
-    // Contact form fields & table tilt
+      gsap.fromTo('#table',
+        { rotateX: 28, y: 80, opacity: 0, transformPerspective: 1400, transformOrigin: '50% 100%' },
+        {
+          rotateX: 0,
+          y: 0,
+          opacity: 1,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: '#table', start: 'top 95%', end: 'top 45%', scrub: 1 }
+        }
+      );
+
+      gsap.fromTo('.footer-big',
+        { xPercent: -10 },
+        {
+          xPercent: 0,
+          ease: 'none',
+          scrollTrigger: { trigger: '.footer', start: 'top bottom', end: 'bottom bottom', scrub: true }
+        }
+      );
+    });
+
+    mm.add('(max-width: 768px)', () => {
+      gsap.fromTo('#gViewport',
+        {
+          y: 36,
+          opacity: 0
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1.1,
+          ease: 'expo.out',
+          scrollTrigger: { trigger: '#gViewport', start: 'top 88%', once: true, fastScrollEnd: true }
+        }
+      );
+
+      gsap.fromTo('#table',
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1.0,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: '#table', start: 'top 88%', once: true, fastScrollEnd: true }
+        }
+      );
+
+      gsap.fromTo('.footer-big',
+        { opacity: 0.3, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1.2,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: '.footer', start: 'top 90%', once: true, fastScrollEnd: true }
+        }
+      );
+    });
+
+    // Contact form fields reveal
     gsap.fromTo('.form .field, .form-foot',
       {
-        y: 30,
+        y: 24,
         opacity: 0
       },
       {
         y: 0,
         opacity: 1,
-        stagger: 0.1,
+        stagger: 0.08,
         duration: 0.9,
         ease: 'power3.out',
         scrollTrigger: { trigger: '.form', start: 'top 85%', once: true, fastScrollEnd: true }
-      }
-    );
-
-    gsap.fromTo('#table',
-      { rotateX: 28, y: 80, opacity: 0, transformPerspective: 1400, transformOrigin: '50% 100%' },
-      {
-        rotateX: 0,
-        y: 0,
-        opacity: 1,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '#table', start: 'top 95%', end: 'top 45%', scrub: 1 }
-      }
-    );
-
-    // Footer wordmark slide
-    gsap.fromTo('.footer-big',
-      { xPercent: -12 },
-      {
-        xPercent: 0,
-        ease: 'none',
-        scrollTrigger: { trigger: '.footer', start: 'top bottom', end: 'bottom bottom', scrub: true }
       }
     );
   };
